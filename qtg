@@ -1,0 +1,86 @@
+from itertools import product
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+weights = [2, 2, 1]
+profits = [6, 2, 1]
+capacity = 3
+n = len(weights)
+
+best_profit = -1
+best_state = None
+
+
+for bits in product('01', repeat=n):
+    bitstring = ''.join(bits)              
+    choice = [int(b) for b in bitstring[::-1]]   
+
+    total_weight = sum(choice[i] * weights[i] for i in range(n))
+    total_profit = sum(choice[i] * profits[i] for i in range(n))
+
+    if total_weight <= capacity and total_profit > best_profit:
+        best_profit = total_profit
+        best_state = bitstring
+
+print("Best feasible profit =", best_profit)
+print("Best state =", best_state)
+
+
+def oracle_mark_state(target):
+    qc = QuantumCircuit(n)
+
+    for i in range(n):
+        if target[::-1][i] == '0':
+            qc.x(i)
+
+    qc.h(n-1)
+    qc.mcx([0, 1], 2)
+    qc.h(n-1)
+
+    for i in range(n):
+        if target[::-1][i] == '0':
+            qc.x(i)
+
+    return qc
+
+def state_preparation():
+    qc = QuantumCircuit(n)
+
+    qc.ry(5, 0)   # these are random numbers for less, more or somewhat favored
+    qc.ry(1, 1)   
+    qc.ry(3, 2)   
+
+    return qc
+
+def diffuser(A):
+    qc = QuantumCircuit(n)
+
+    qc.compose(A.inverse(), inplace=True)
+
+    qc.x(range(n))
+    qc.h(n-1)
+    qc.mcx([0, 1], 2)
+    qc.h(n-1)
+    qc.x(range(n))
+
+    qc.compose(A, inplace=True)
+
+    return qc
+
+A = state_preparation()
+Uf = oracle_mark_state(best_state)
+D = diffuser(A)
+
+# grover like search part 
+
+qc = QuantumCircuit(n, n)
+
+qc.compose(A, inplace=True)
+
+qc.compose(Uf, inplace=True)
+qc.compose(D, inplace=True)
+
+# measurement
+qc.measure(range(n), range(n))
+
+qc.draw('mpl')

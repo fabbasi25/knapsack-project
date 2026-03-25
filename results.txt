@@ -1,0 +1,25 @@
+comparison to classical algorithms 
+the paper shows that it outperforms all classical algorithms 
+
+- we should compare both algorithms to each other // compare to classical 
+- use g as difficulty of problems 
+- run on QC? 
+- complexity analysis? 
+
+- run the code on QTG example data 
+
+Next Steps: 
+- Fix QTG code 
+- Run QAOA on IBM computer 
+- Run different experiments for both 
+- Complexity analysis (number of gates)
+
+PRESENTATION: 
+1. Introduction: define the problem, explain the complexity class, classical algorithm to solve it 
+2. Quantum Algorithms: 
+    - QAOA 
+    - QTG 
+3. Results: 
+    - QAOA 
+    - QTG 
+    - Comparisons between each other and with classical algorithms 

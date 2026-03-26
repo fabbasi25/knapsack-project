@@ -1,83 +1,161 @@
 # import libraries
-from qaoa import run_knapsack 
-
-from qiskit_aer import AerSimulator
-from qiskit_aer.primitives import Sampler as AerSampler
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-
-import matplotlib.pyplot as plt
-import numpy as np 
+import time
+import numpy as np
 from itertools import product
-
-
-def brute_force_multiknapsack(weights, values, capacities):
-    n = len(weights)  # number of items
-    m = len(capacities)  # number of knapsacks
-
-    best_value = 0
-    best_x = None
-
-    # x[i][j] = 1 if item j is in knapsack i
-    for x in product([0,1], repeat=n*m):
-        x = np.array(x).reshape(m, n)
-        
-        # each item can only be in one knapsack
-        if np.any(x.sum(axis=0) > 1):
-            continue
-        
-        # check capacity constraint for each knapsack
-        if np.all(x @ weights <= capacities):
-            val = np.sum(x * values)
-            if val > best_value:
-                best_value = val
-                best_x = x
-
-    return best_x, best_value
-
-backend = AerSimulator()
-pm = generate_preset_pass_manager(backend=backend, optimization_level=3)
+from qaoa import run_knapsack
+from qiskit_aer.primitives import Sampler as AerSampler
 
 sampler = AerSampler()
 
+# -------------------------
+# Brute-force with time limit
+# -------------------------
+def brute_force_multiknapsack(weights, values, capacities, time_limit=None):
+    n = len(weights)
+    m = len(capacities)
+    best_value = 0
+    best_x = None
+    start_time = time.time()
 
-def parse_knapsack_file(filename):
-    with open(filename, "r") as f:
+    for x in product([0,1], repeat=n*m):
+        if time_limit is not None and (time.time() - start_time) > time_limit:
+            print(f"Time limit {time_limit}s reached, stopping brute-force")
+            break
+
+        x_arr = np.array(x).reshape(m, n)
+        if np.any(x_arr.sum(axis=0) > 1):
+            continue
+        if np.all(x_arr @ weights <= capacities):
+            val = np.sum(x_arr * values)
+            if val > best_value:
+                best_value = val
+                best_x = x_arr
+
+    return best_x, best_value
+
+# -------------------------
+# Greedy heuristic for large instances
+# -------------------------
+def greedy_knapsack(weights, values, capacities):
+    n = len(weights)
+    m = len(capacities)
+    best_x = np.zeros((m,n), dtype=int)
+    remaining = capacities.copy()
+
+    # Compute value/weight ratio
+    ratio = [v/w for v, w in zip(values, weights)]
+    order = np.argsort(ratio)[::-1]  # descending
+
+    for j in order:
+        # assign to the first knapsack that fits
+        for i in range(m):
+            if weights[j] <= remaining[i]:
+                best_x[i,j] = 1
+                remaining[i] -= weights[j]
+                break
+    total_value = np.sum(best_x * values)
+    return best_x, total_value
+
+# -------------------------
+# Main test function
+# -------------------------
+def run_p_tests(input_file, output_file):
+    # parse instance
+    with open(input_file, "r") as f:
         lines = f.read().strip().splitlines()
-
     n = int(lines[0])
     item_lines = lines[1:1+n]
     capacity_line = lines[1+n]
 
     weights = []
     values = []
-
     for line in item_lines:
         w, v = map(int, line.split())
         weights.append(w)
         values.append(v)
 
-    capacity = [int(capacity_line)]
+    capacities = [int(capacity_line)]
 
-    return weights, values, capacity
+    print(f"Processing {input_file} with {n} items")
 
+    # -------------------------
+    # Choose classical reference
+    # -------------------------
+    if n <= 20:
+        # small instances -> brute-force
+        print("Running brute-force as reference")
+        reference_x, reference_value = brute_force_multiknapsack(weights, values, capacities, time_limit=60)
+    else:
+        # large instances -> greedy heuristic
+        print("Using greedy heuristic as reference")
+        reference_x, reference_value = greedy_knapsack(weights, values, capacities)
 
-all_data = []
+    print(f"Reference value: {reference_value}")
 
-def run_p_tests(input_file, output_file):
-    w, v, c = parse_knapsack_file(input_file)
-    print("computing bruteforce!")
-    correct, correct_value = brute_force_multiknapsack(w, v, c)
-
+    # -------------------------
+    # Run QAOA for different p
+    # -------------------------
+    results = []
     for p in range(0, 51, 5):
-        print(f"in the loop {p}")
-        result, result_value = run_knapsack(w, v, c, sampler, p)
-        print("calculated results")
+        print(f"Running QAOA p={p}")
+        qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
 
-        with open(output_file, "w") as o: 
-            o.write(str(p) + "\n")
-            o.write(str(result_value) + "\n")
-            o.write(str(correct_value) + "\n")
+        # compute "success probability" relative to reference
+        success = 1.0 if qaoa_value >= reference_value else 0.0
+        print(f"QAOA value: {qaoa_value}, success={success}")
 
+        results.append((p, qaoa_value, reference_value, success))
+
+    # -------------------------
+    # Write results
+    # -------------------------
+    with open(output_file, "w") as o:
+        o.write("p,qaoa_value,reference_value,success\n")
+        for r in results:
+            o.write(",".join(map(str,r)) + "\n")
+
+    print(f"Results written to {output_file}")
+
+
+sampler = AerSampler()
+
+# def parse_knapsack_file(filename):
+#     with open(filename, "r") as f:
+#         lines = f.read().strip().splitlines()
+
+#     n = int(lines[0])
+#     item_lines = lines[1:1+n]
+#     capacity_line = lines[1+n]
+
+#     weights = []
+#     values = []
+
+#     for line in item_lines:
+#         w, v = map(int, line.split())
+#         weights.append(w)
+#         values.append(v)
+
+#     capacity = [int(capacity_line)]
+
+#     return weights, values, capacity
+
+
+# all_data = []
+
+# def run_p_tests(input_file, output_file):
+#     w, v, c = parse_knapsack_file(input_file)
+#     print("computing bruteforce!")
+#     correct, correct_value = brute_force_multiknapsack(w, v, c)
+
+#     for p in range(0, 51, 5):
+#         print(f"in the loop {p}")
+#         result, result_value = run_knapsack(w, v, c, sampler, p)
+#         print("calculated results")
+
+#         with open(output_file, "w") as o: 
+#             o.write(str(p) + "\n")
+#             o.write(str(result_value) + "\n")
+#             o.write(str(correct_value) + "\n")
 
 
 import sys

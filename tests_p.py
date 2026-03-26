@@ -68,7 +68,9 @@ def run_p_tests(input_file, output_file):
     correct, correct_value = brute_force_multiknapsack(w, v, c)
 
     for p in range(0, 51, 5):
+        print(f"in the loop {p}")
         result, result_value = run_knapsack(w, v, c, sampler, p)
+        print("calculated results")
 
         with open(output_file, "w") as o: 
             o.write(str(p) + "\n")

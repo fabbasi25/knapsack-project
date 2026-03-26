@@ -1,0 +1,17 @@
+/.bash_history
+/.bash_logout
+/.bash_profile
+/.bashrc
+/.cache
+/.dotnet
+/.local
+/.nv
+/.vscode-server
+/.wget-hsts
+/nearline
+/projects
+/venvs
+/scratch
+# cluster logs
+*.out
+*.err

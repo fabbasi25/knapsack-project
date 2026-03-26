@@ -2,8 +2,8 @@
 #SBATCH --job-name=knapsack_p
 #SBATCH --output=logs/out_%A_%a.out
 #SBATCH --error=logs/err_%A_%a.err
-#SBATCH --array=1-84
-#SBATCH --time=03:00:00
+#SBATCH --array=0-83
+#SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 

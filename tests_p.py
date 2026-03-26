@@ -65,6 +65,7 @@ all_data = []
 
 def run_p_tests(input_file, output_file):
     w, v, c = parse_knapsack_file(input_file)
+    print("computing bruteforce!")
     correct, correct_value = brute_force_multiknapsack(w, v, c)
 
     for p in range(0, 51, 5):
@@ -84,6 +85,8 @@ import sys
 if __name__ == "__main__":
     input_file = sys.argv[1]
     output_file = sys.argv[2]
+
+    print("in the file!")
 
     run_p_tests(input_file, output_file)
 

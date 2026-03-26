@@ -2,15 +2,15 @@
 #SBATCH --job-name=knapsack_p
 #SBATCH --output=logs/out_%A_%a.out
 #SBATCH --error=logs/err_%A_%a.err
-#SBATCH --array=0-83
+#SBATCH --array=0-47
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 
 source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
 
-INPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/instances/easy"
-OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/easy"
+INPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/instances/memory_baseline"
+OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/memory_baseline"
 
 mkdir -p $OUTPUT_DIR
 mkdir -p logs

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=knapsack_p
-#SBATCH --output=logs/out_%A_%a.txt
-#SBATCH --error=logs/err_%A_%a.txt
+#SBATCH --output=logs/out_%A_%a.out
+#SBATCH --error=logs/err_%A_%a.err
 #SBATCH --array=1-84
 #SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=1

@@ -64,10 +64,10 @@ def parse_knapsack_file(filename):
 all_data = []
 
 def run_p_tests(input_file, output_file):
+    w, v, c = parse_knapsack_file(input_file)
     correct, correct_value = brute_force_multiknapsack(w, v, c)
-    
+
     for p in range(0, 51, 5):
-        w, v, c = parse_knapsack_file(input_file)
         result, result_value = run_knapsack(w, v, c, sampler, p)
 
         with open(output_file, "w") as o: 

@@ -2,19 +2,21 @@
 #SBATCH --job-name=knapsack_p
 #SBATCH --output=logs/out_%A_%a.txt
 #SBATCH --error=logs/err_%A_%a.txt
-#SBATCH --array=0-99
+#SBATCH --array=1-84
 #SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 
-INPUT_DIR="/knapsack-project/instances/easy"
-OUTPUT_DIR="/knapsack-project/solutions/easy"
+source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
+
+INPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/instances/easy"
+OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/easy"
 
 mkdir -p $OUTPUT_DIR
 mkdir -p logs
 
 # get list of files
-FILES=($INPUT_DIR/*.txt)
+FILES=($INPUT_DIR/*.knap)
 
 INPUT_FILE=${FILES[$SLURM_ARRAY_TASK_ID]}
 
@@ -24,7 +26,7 @@ if [ -z "$INPUT_FILE" ]; then
     exit 1
 fi
 
-BASENAME=$(basename "$INPUT_FILE" .txt)
+BASENAME=$(basename "$INPUT_FILE" .knap)
 OUTPUT_FILE="$OUTPUT_DIR/${BASENAME}-f.txt"
 
 echo "Processing $INPUT_FILE"

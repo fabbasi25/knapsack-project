@@ -2,6 +2,9 @@
 import time
 import numpy as np
 from itertools import product
+
+print("top of file", flush=True)
+
 from qaoa import run_knapsack
 from qiskit_aer.primitives import Sampler as AerSampler
 
@@ -164,7 +167,7 @@ if __name__ == "__main__":
     input_file = sys.argv[1]
     output_file = sys.argv[2]
 
-    print("in the file!")
+    print("in the file!", flush=True)
 
     run_p_tests(input_file, output_file)
 

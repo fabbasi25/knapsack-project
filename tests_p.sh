@@ -5,7 +5,7 @@
 #SBATCH --array=0-47
 #SBATCH --time=10:00:00
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem=40G
 
 source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
 

@@ -96,7 +96,7 @@ def run_p_tests(input_file, output_file):
     # Run QAOA for different p
     # -------------------------
     results = []
-    for p in range(0, 51, 5):
+    for p in range(1, 51, 5):
         print(f"Running QAOA p={p}")
         qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
 

@@ -62,28 +62,32 @@ def greedy_knapsack(weights, values, capacities):
 # -------------------------
 # Main test function
 # -------------------------
-def run_p_tests(input_file, output_file):
-    # parse instance
-    with open(input_file, "r") as f:
-        lines = f.read().strip().splitlines()
-    n = int(lines[0])
-    item_lines = lines[1:1+n]
-    capacity_line = lines[1+n]
 
-    weights = []
-    values = []
-    for line in item_lines:
-        w, v = map(int, line.split())
-        weights.append(w)
-        values.append(v)
+import os
 
-    capacities = [int(capacity_line)]
+import numpy as np
 
-    print(f"Processing {input_file} with {n} items")
+def generate_knapsack(n, weight_range=(1, 50), value_range=(1, 100), capacity_ratio=0.5, seed=None):
+    rng = np.random.default_rng(seed)
 
-    # -------------------------
-    # Choose classical reference
-    # -------------------------
+    weights = rng.integers(*weight_range, size=n)
+    values = rng.integers(*value_range, size=n)
+
+    capacity = int(capacity_ratio * np.sum(weights))
+
+    return weights.tolist(), values.tolist(), [capacity]
+
+
+def run_p_tests(output_file, n):
+    task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+
+    weights, values, capacities = generate_knapsack(
+        n=n,
+        seed=task_id
+    )
+
+    print(f"Running task {task_id}", flush=True)
+
     if n <= 20:
         # small instances -> brute-force
         print("Running brute-force as reference")
@@ -95,29 +99,75 @@ def run_p_tests(input_file, output_file):
 
     print(f"Reference value: {reference_value}")
 
-    # -------------------------
-    # Run QAOA for different p
-    # -------------------------
     results = []
-    for p in range(1, 51, 5):
+    for p in [1, 2, 3, 5]:
         print(f"Running QAOA p={p}")
         qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
+        results.append((p, qaoa_value, reference_value))
 
-        # compute "success probability" relative to reference
-        success = 1.0 if qaoa_value >= reference_value else 0.0
-        print(f"QAOA value: {qaoa_value}, success={success}")
-
-        results.append((p, qaoa_value, reference_value, success))
-
-    # -------------------------
-    # Write results
-    # -------------------------
-    with open(output_file, "w") as o:
-        o.write("p,qaoa_value,reference_value,success\n")
+    with open(output_file, "w") as f:
         for r in results:
-            o.write(",".join(map(str,r)) + "\n")
+            f.write(",".join(map(str, r)) + "\n")
 
     print(f"Results written to {output_file}")
+
+
+# def run_p_tests(input_file, output_file):
+#     # parse instance
+#     with open(input_file, "r") as f:
+#         lines = f.read().strip().splitlines()
+#     n = int(lines[0])
+#     item_lines = lines[1:1+n]
+#     capacity_line = lines[1+n]
+
+#     weights = []
+#     values = []
+#     for line in item_lines:
+#         w, v = map(int, line.split())
+#         weights.append(w)
+#         values.append(v)
+
+#     capacities = [int(capacity_line)]
+
+#     print(f"Processing {input_file} with {n} items")
+
+#     # -------------------------
+#     # Choose classical reference
+#     # -------------------------
+#     if n <= 20:
+#         # small instances -> brute-force
+#         print("Running brute-force as reference")
+#         reference_x, reference_value = brute_force_multiknapsack(weights, values, capacities, time_limit=60)
+#     else:
+#         # large instances -> greedy heuristic
+#         print("Using greedy heuristic as reference")
+#         reference_x, reference_value = greedy_knapsack(weights, values, capacities)
+
+#     print(f"Reference value: {reference_value}")
+
+#     # -------------------------
+#     # Run QAOA for different p
+#     # -------------------------
+#     results = []
+#     for p in range(1, 51, 5):
+#         print(f"Running QAOA p={p}")
+#         qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
+
+#         # compute "success probability" relative to reference
+#         success = 1.0 if qaoa_value >= reference_value else 0.0
+#         print(f"QAOA value: {qaoa_value}, success={success}")
+
+#         results.append((p, qaoa_value, reference_value, success))
+
+#     # -------------------------
+#     # Write results
+#     # -------------------------
+#     with open(output_file, "w") as o:
+#         o.write("p,qaoa_value,reference_value,success\n")
+#         for r in results:
+#             o.write(",".join(map(str,r)) + "\n")
+
+#     print(f"Results written to {output_file}")
 
 
 sampler = AerSampler()
@@ -164,10 +214,10 @@ sampler = AerSampler()
 import sys
 
 if __name__ == "__main__":
-    input_file = sys.argv[1]
-    output_file = sys.argv[2]
+    output_file = sys.argv[1]
+    n = sys.argv[2]
 
     print("in the file!", flush=True)
 
-    run_p_tests(input_file, output_file)
+    run_p_tests(output_file, n)
 

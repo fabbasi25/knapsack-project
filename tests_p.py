@@ -100,7 +100,7 @@ def run_p_tests(output_file, n):
     print(f"Reference value: {reference_value}")
 
     results = []
-    for p in [1, 2, 3, 5]:
+    for p in [1, 2, 3, 4, 5, 6, 7]:
         print(f"Running QAOA p={p}")
         qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
         results.append((p, qaoa_value, reference_value))

@@ -215,7 +215,7 @@ import sys
 
 if __name__ == "__main__":
     output_file = sys.argv[1]
-    n = sys.argv[2]
+    n = int(sys.argv[2])
 
     print("in the file!", flush=True)
 

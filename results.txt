@@ -12,6 +12,7 @@ Next Steps:
 - Fix QTG code 
 - Run QAOA on IBM computer 
 - Run different experiments for both 
+- Doing paper analysis will be useful for big cases to justify why we couldn't do this on the cluster 
 - Complexity analysis (number of gates)
 
 PRESENTATION: 

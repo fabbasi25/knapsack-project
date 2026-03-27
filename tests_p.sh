@@ -9,7 +9,7 @@
 
 source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
 
-OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/small"
+OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/small_5"
 
 mkdir -p $OUTPUT_DIR
 

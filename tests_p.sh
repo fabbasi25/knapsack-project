@@ -18,4 +18,4 @@ OUTPUT_FILE="$OUTPUT_DIR/${n}-f.txt"
 
 echo "Running task $SLURM_ARRAY_TASK_ID (n=$n)"
 
-python tests_p.py "$OUTPUT_FILE" "$n"
+python tests_qaoa.py "$OUTPUT_FILE" "$n"

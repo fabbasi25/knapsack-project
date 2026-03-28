@@ -137,7 +137,7 @@ def run_knapsack(weights, values, capacities, sampler, p=1):
 
         mycirc = full_knapsack_circuit(weights, values, capacities, p)
 
-        job_sim = sampler.run([mycirc], [best_params], shots=4096)
+        job_sim = sampler.run([mycirc], [best_params], shots=8192)
 
         quasi_dists = job_sim.result().quasi_dists[0].binary_probabilities()
 

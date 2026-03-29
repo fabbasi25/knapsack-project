@@ -129,7 +129,7 @@ def run_knapsack(weights, values, capacities, sampler, p=1):
 
     best_value = 0
     best_bitstring = None
-    for _ in range(1):
+    for _ in range(10):
         result = minimize(objective, x0=np.random.uniform(0, np.pi, 2*p), args=(weights, values, capacities, p, sampler, 8192), method='COBYLA', options={'maxiter': 500})
 
         # now run with optimized params

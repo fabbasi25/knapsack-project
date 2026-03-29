@@ -9,7 +9,7 @@
 
 source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
 
-OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/small_1_8192"
+OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/small_1_8192_new"
 
 mkdir -p $OUTPUT_DIR
 
@@ -18,4 +18,4 @@ OUTPUT_FILE="$OUTPUT_DIR/${n}-f.txt"
 
 echo "Running task $SLURM_ARRAY_TASK_ID (n=$n)"
 
-python tests_qaoa.py "$OUTPUT_FILE" "$n"
+python tests_qaoa_1.py "$OUTPUT_FILE" "$n"

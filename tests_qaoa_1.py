@@ -5,7 +5,7 @@ from itertools import product
 
 print("top of file", flush=True)
 
-from qaoa import run_knapsack
+from qaoa1 import run_knapsack
 from qiskit_aer.primitives import Sampler as AerSampler
 
 sampler = AerSampler()

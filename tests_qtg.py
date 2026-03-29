@@ -87,36 +87,37 @@ def run_p_tests(output_file, n):
     
     # Grab the Slurm array ID to use as a unique seed
     task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
-
-    weights, values, capacities = generate_knapsack(
-        n=n,
-        seed=task_id
-    )
-
-    print(f"Running task {task_id}", flush=True)
-
-    if n <= 20:
-        # small instances -> brute-force
-        print("Running brute-force as reference")
-        reference_x, reference_value = brute_force_multiknapsack(weights, values, capacities, time_limit=60)
-    else:
-        # large instances -> greedy heuristic
-        print("Using greedy heuristic as reference")
-        reference_x, reference_value = greedy_knapsack(weights, values, capacities)
-
-    print(f"Reference value: {reference_value}")
-
-    results = []
     
-    for p in [0, 1, 2, 3, 4, 5]: # 'p' now acts as Grover iterations (k)
-        print(f"Running QTG k={p}", flush=True)
-        qtg_x, qtg_value = run_qtg_knapsack(weights, values, capacities, sampler, p)
-        results.append((p, qtg_value, reference_value))
+    for i in range(10): 
+        weights, values, capacities = generate_knapsack(
+            n=n,
+            seed=task_id + i 
+        )
 
-    # Write output to the specified file
-    with open(output_file, "w") as f:
-        for r in results:
-            f.write(",".join(map(str, r)) + "\n")
+        print(f"Running task {task_id}", flush=True)
+
+        if n <= 20:
+            # small instances -> brute-force
+            print("Running brute-force as reference")
+            reference_x, reference_value = brute_force_multiknapsack(weights, values, capacities, time_limit=60)
+        else:
+            # large instances -> greedy heuristic
+            print("Using greedy heuristic as reference")
+            reference_x, reference_value = greedy_knapsack(weights, values, capacities)
+
+        print(f"Reference value: {reference_value}")
+
+        results = []
+        
+        for p in [0, 1, 2, 3, 4, 5]: # 'p' now acts as Grover iterations (k)
+            print(f"Running QTG k={p}", flush=True)
+            qtg_x, qtg_value = run_qtg_knapsack(weights, values, capacities, sampler, p)
+            results.append((p, qtg_value, reference_value))
+
+        # Write output to the specified file
+        with open(output_file, "a") as f:
+            for r in results:
+                f.write(",".join(map(str, r)) + "\n")
 
     print(f"Results written to {output_file}", flush=True)
 
@@ -127,7 +128,5 @@ def run_p_tests(output_file, n):
 if __name__ == "__main__":
     output_file = sys.argv[1]
     n = sys.argv[2]
-
-    print("in the file!", flush=True)
 
     run_p_tests(output_file, n)

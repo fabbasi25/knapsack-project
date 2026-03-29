@@ -187,71 +187,146 @@ def build_amplified_circuit(k_iters, qtg_circ, n_items, n_cap, n_prof, capacity,
 
     return qc
 
+
 # ============================================================
-# Main Wrapper for Benchmark Script
+# Helper: run one amplification pass at a given threshold
 # ============================================================
 
-def run_qtg_knapsack(weights, values, capacities, sampler, k_iters, shots=1000):
+def _run_single_round(qtg_circ, n_items, n_cap, n_prof, capacity,
+                      weights, profits, threshold, sampler,
+                      k_iters, shots):
     """
-        
-    Args:
-        weights (list): Item weights.
-        values (list): Item values (profits).
-        capacities (list): List of capacities (extracts the first one).
-        sampler: Qiskit AerSampler instance.
-        k_iters (int): Number of Grover iterations (equivalent to 'p' depth).
-        shots (int): Number of shots for the sampler.
-        
+    Execute QTG + k Grover iterations at the given threshold.
+
     Returns:
-        best_x (np.array): Matrix of shape (1, n_items) representing the bitstring.
-        best_measured_profit (int): Total value of the best feasible solution found.
+        best_profit:   profit of the best feasible state measured
+        best_bitstr:   the corresponding path bitstring
+        marked_states: list of (bitstr, profit) for all feasible states
+                       whose profit >= threshold that appeared in samples
     """
-    n_items = len(weights)
-    profits = values
-    capacity = capacities[0] # Assumes single knapsack from your generator
-
-    # 1. Classical greedy preparation
-    greedy_solution, greedy_profit = solve_greedy(weights, profits, capacity)
-    n_cap, n_prof = compute_register_sizes(weights, profits, capacity)
-    
-    threshold = greedy_profit + 1
-    b = n_items / 4
-
-    # 2. Build Circuits
-    qtg_circ = build_qtg(n_items, weights, profits, capacity, n_cap, n_prof, greedy_solution, b)
-    qc = build_amplified_circuit(k_iters, qtg_circ, n_items, n_cap, n_prof, capacity, threshold)
-
-    # 3. Execute
+    # Build and run the amplified circuit at this threshold
+    qc = build_amplified_circuit(k_iters, qtg_circ, n_items, n_cap,
+                                 n_prof, capacity, threshold)
     job = sampler.run([qc], shots=shots)
     counts = job.result().quasi_dists[0].binary_probabilities()
 
-    # 4. Parse output and extract highest feasible profit
+    # Parse measurement results into path-only probabilities
     path_probs = {}
     for bitstr, prob in counts.items():
-        # c_prof is tracked at the start of the string, path_bits at the end
-        path_bits = bitstr[n_prof:] 
+        path_bits = bitstr[n_prof:]
         path_probs[path_bits] = path_probs.get(path_bits, 0) + prob
 
-    best_measured_profit = -1
-    best_measured_bitstr = None
+    # Scan every measured path: track the best feasible solution
+    # and collect all "marked" states (feasible + profit >= threshold)
+    best_profit = -1
+    best_bitstr = None
+    marked_set = set()
 
     for pb in path_probs:
         tw = sum(weights[i] for i in range(n_items) if pb[n_items-1-i] == '1')
         tp = sum(profits[i] for i in range(n_items) if pb[n_items-1-i] == '1')
-        
-        if tw <= capacity and tp > best_measured_profit:
-            best_measured_profit = tp
-            best_measured_bitstr = pb
 
-    # Fallback to greedy if no feasible solution was found in the samples
-    if best_measured_bitstr is None:
-        best_measured_profit = greedy_profit
-        best_measured_bitstr = ''.join(str(greedy_solution[n_items-1-i]) for i in range(n_items))
+        if tw <= capacity:
+            # Track globally best feasible
+            if tp > best_profit:
+                best_profit = tp
+                best_bitstr = pb
+            # Track marked states (those the oracle would phase-flip)
+            if tp >= threshold:
+                marked_set.add((pb, tp))
 
-    # Format the bitstring into the numpy array format the benchmark expects
+    marked_states = sorted(marked_set, key=lambda x: -x[1])
+    return best_profit, best_bitstr, marked_states
+
+
+# ============================================================
+# Main Wrapper for Benchmark Script  (ITERATIVE VERSION)
+# ============================================================
+
+def run_qtg_knapsack(weights, values, capacities, sampler, k_iters,
+                     shots=1000, max_rounds=10):
+    """
+    Iterative QTG knapsack solver.
+
+    Starting from threshold = greedy_profit + 1, the algorithm runs
+    QTG + Grover amplification, then raises the threshold to the
+    best profit found so far and repeats.  The loop stops when at
+    most one feasible state is marked by the oracle, meaning we have
+    isolated the single optimal solution.
+
+    Args:
+        weights (list):      Item weights.
+        values (list):       Item values (profits).
+        capacities (list):   List of capacities (uses the first one).
+        sampler:             Qiskit AerSampler instance.
+        k_iters (int):       Number of Grover iterations per round.
+        shots (int):         Number of shots per circuit execution.
+        max_rounds (int):    Safety cap on refinement iterations.
+
+    Returns:
+        best_x (np.array):           Shape (1, n_items) binary solution.
+        best_measured_profit (int):   Total value of that solution.
+    """
+    n_items = len(weights)
+    profits = values
+    capacity = capacities[0]
+
+    # ---- 1. Classical greedy preparation ----
+    greedy_solution, greedy_profit = solve_greedy(weights, profits, capacity)
+    n_cap, n_prof = compute_register_sizes(weights, profits, capacity)
+    b = n_items / 4
+
+    # ---- 2. Build the QTG circuit (reused every round) ----
+    qtg_circ = build_qtg(n_items, weights, profits, capacity,
+                         n_cap, n_prof, greedy_solution, b)
+
+    # ---- 3. Iterative threshold refinement loop ----
+    current_threshold = greedy_profit + 1
+
+    # Keep track of the overall best across all rounds
+    global_best_profit = greedy_profit
+    global_best_bitstr = ''.join(
+        str(greedy_solution[n_items-1-i]) for i in range(n_items))
+
+    for round_num in range(1, max_rounds + 1):
+        best_profit, best_bitstr, marked = _run_single_round(
+            qtg_circ, n_items, n_cap, n_prof, capacity,
+            weights, profits, current_threshold, sampler,
+            k_iters, shots)
+
+        # Update global best if this round found something better
+        if best_profit > global_best_profit and best_bitstr is not None:
+            global_best_profit = best_profit
+            global_best_bitstr = best_bitstr
+
+        # ----------------------------------------------------------
+        # Convergence check
+        # ----------------------------------------------------------
+        # If 0 or 1 states are marked, we've isolated the optimum
+        # (or overshot the threshold).  Either way, stop.
+        if len(marked) <= 1:
+            break
+
+        # Multiple marked states still survive -> tighten the
+        # threshold to the best profit we just observed, so only
+        # the top-profit state(s) will be marked next round.
+        new_threshold = best_profit
+        if new_threshold <= current_threshold:
+            # best_profit didn't exceed the current bar; nudge by 1
+            # to guarantee the marked set shrinks.
+            new_threshold = current_threshold + 1
+        current_threshold = new_threshold
+
+    # ---- 4. Format output for the benchmark harness ----
+    # Fallback to greedy if no feasible solution was ever sampled
+    if global_best_bitstr is None:
+        global_best_profit = greedy_profit
+        global_best_bitstr = ''.join(
+            str(greedy_solution[n_items-1-i]) for i in range(n_items))
+
     best_x = np.zeros((1, n_items), dtype=int)
     for i in range(n_items):
-        if best_measured_bitstr[n_items-1-i] == '1':
+        if global_best_bitstr[n_items-1-i] == '1':
             best_x[0, i] = 1
 
-    return best_x, best_measured_profit
+    return best_x, global_best_profit

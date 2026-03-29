@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=qtg_knapsack_p
+#SBATCH --job-name=qtg_new_knapsack_p
 #SBATCH --output=logs/out_%A_%a.out
 #SBATCH --error=logs/err_%A_%a.err
 #SBATCH --array=0-17
@@ -9,7 +9,7 @@
 
 source /home/fnabbasi/projects/def-mh541-ab/fnabbasi/qiskit_env/bin/activate 
 
-OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/qtg"
+OUTPUT_DIR="/home/fnabbasi/projects/def-mh541-ab/fnabbasi/knapsack-project/solutions/qtg_new"
 
 mkdir -p $OUTPUT_DIR
 

@@ -8,3 +8,6 @@ ult of the quantum algorithm and cr is the result of the classical algorithm.
 
 plot_qaoa.py is a plotting script to plot the results from /solutions into /graphs. qaoa.ipynb was used to run some initial small 
 tests whereas qaoa.py was the Python file used for the larger scale tests ran on the cluster. 
+
+qtg_solver_10.py items example is the code used for solving the 10 items knapsack problem and plotting the results. The three figures (Fig1, 2 and 3) in the graphs folder are the results of this code. 
+The job scripts qtg_solver.py contain the files that ran the tests as well as the bash job scripts that were used to run the tests on the clusters. qtg and qtg_new folders contain the results of running the same instances but with the QTG circuit. 

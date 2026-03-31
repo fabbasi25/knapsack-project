@@ -1,4 +1,4 @@
-This repository contains code and results for our project for ECE405C Winter 2026. The graphs folder contains some results from 
+This repository contains code and results for our project for ECE676C Winter 2026. The graphs folder contains some results from 
 QAOA simulations that were run on a cluster with a time limit of 12h and 40GB of memory. The job scripts contain the files that 
 ran the tests as well as the bash job scripts that were used to run the tests on the clusters. 
 

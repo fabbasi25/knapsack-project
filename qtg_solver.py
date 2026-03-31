@@ -189,7 +189,7 @@ def build_amplified_circuit(k_iters, qtg_circ, n_items, n_cap, n_prof, capacity,
 
 
 # ============================================================
-# Helper: run one amplification pass at a given threshold
+# run one amplification at a given threshold
 # ============================================================
 
 def _run_single_round(qtg_circ, n_items, n_cap, n_prof, capacity,
@@ -240,7 +240,7 @@ def _run_single_round(qtg_circ, n_items, n_cap, n_prof, capacity,
 
 
 # ============================================================
-# Main Wrapper for Benchmark Script  (ITERATIVE VERSION)
+# Iteration circuit to get the best solution
 # ============================================================
 
 def run_qtg_knapsack(weights, values, capacities, sampler, k_iters,

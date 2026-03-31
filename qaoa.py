@@ -89,6 +89,7 @@ def full_knapsack_circuit(weights, values, capacities, p):
     qc.h(range(N))
 
     for _ in range(p): 
+        # alternate between knapsack and mixing hamiltonian evolution in each QAOA layer 
         qc.compose(knapsack_hamiltonian(weights, values, capacities, Parameter(f"γ{_}")), inplace=True)
         qc.barrier()
         qc.compose(mixing_hamiltonian(N, Parameter(f"β{_}")), inplace=True)

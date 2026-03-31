@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # data[p][n] = list of accuracy values (to be averaged)
 data = collections.defaultdict(lambda: collections.defaultdict(list))
 
-for filepath in glob.glob("knapsack-project/solutions/small_10_8192/*-f.txt"):
+for filepath in glob.glob("solutions/small_10_8192/*-f.txt"):
     filename = os.path.basename(filepath)
     n = int(filename.split("-")[0])
 
@@ -49,6 +49,6 @@ ax.set_ylim(0, 1.1)
 ax.grid(True, linestyle="--", alpha=0.4)
 
 plt.tight_layout()
-plt.savefig("qaoa_accuracy_10_8192.png", dpi=150, transparent=True)
+plt.savefig("graphs/qaoa_accuracy_10_8192.png", dpi=150, transparent=True)
 plt.show()
 print("Saved qaoa_accuracy.png")

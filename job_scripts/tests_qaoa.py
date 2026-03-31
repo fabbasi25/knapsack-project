@@ -3,7 +3,6 @@ import time
 import numpy as np
 from itertools import product
 
-print("top of file", flush=True)
 
 from qaoa1 import run_knapsack
 from qiskit_aer.primitives import Sampler as AerSampler
@@ -113,104 +112,7 @@ def run_p_tests(output_file, n):
         print(f"Results written to {output_file}")
 
 
-# def run_p_tests(input_file, output_file):
-#     # parse instance
-#     with open(input_file, "r") as f:
-#         lines = f.read().strip().splitlines()
-#     n = int(lines[0])
-#     item_lines = lines[1:1+n]
-#     capacity_line = lines[1+n]
-
-#     weights = []
-#     values = []
-#     for line in item_lines:
-#         w, v = map(int, line.split())
-#         weights.append(w)
-#         values.append(v)
-
-#     capacities = [int(capacity_line)]
-
-#     print(f"Processing {input_file} with {n} items")
-
-#     # -------------------------
-#     # Choose classical reference
-#     # -------------------------
-#     if n <= 20:
-#         # small instances -> brute-force
-#         print("Running brute-force as reference")
-#         reference_x, reference_value = brute_force_multiknapsack(weights, values, capacities, time_limit=60)
-#     else:
-#         # large instances -> greedy heuristic
-#         print("Using greedy heuristic as reference")
-#         reference_x, reference_value = greedy_knapsack(weights, values, capacities)
-
-#     print(f"Reference value: {reference_value}")
-
-#     # -------------------------
-#     # Run QAOA for different p
-#     # -------------------------
-#     results = []
-#     for p in range(1, 51, 5):
-#         print(f"Running QAOA p={p}")
-#         qaoa_x, qaoa_value = run_knapsack(weights, values, capacities, sampler, p)
-
-#         # compute "success probability" relative to reference
-#         success = 1.0 if qaoa_value >= reference_value else 0.0
-#         print(f"QAOA value: {qaoa_value}, success={success}")
-
-#         results.append((p, qaoa_value, reference_value, success))
-
-#     # -------------------------
-#     # Write results
-#     # -------------------------
-#     with open(output_file, "w") as o:
-#         o.write("p,qaoa_value,reference_value,success\n")
-#         for r in results:
-#             o.write(",".join(map(str,r)) + "\n")
-
-#     print(f"Results written to {output_file}")
-
-
 sampler = AerSampler()
-
-# def parse_knapsack_file(filename):
-#     with open(filename, "r") as f:
-#         lines = f.read().strip().splitlines()
-
-#     n = int(lines[0])
-#     item_lines = lines[1:1+n]
-#     capacity_line = lines[1+n]
-
-#     weights = []
-#     values = []
-
-#     for line in item_lines:
-#         w, v = map(int, line.split())
-#         weights.append(w)
-#         values.append(v)
-
-#     capacity = [int(capacity_line)]
-
-#     return weights, values, capacity
-
-
-# all_data = []
-
-# def run_p_tests(input_file, output_file):
-#     w, v, c = parse_knapsack_file(input_file)
-#     print("computing bruteforce!")
-#     correct, correct_value = brute_force_multiknapsack(w, v, c)
-
-#     for p in range(0, 51, 5):
-#         print(f"in the loop {p}")
-#         result, result_value = run_knapsack(w, v, c, sampler, p)
-#         print("calculated results")
-
-#         with open(output_file, "w") as o: 
-#             o.write(str(p) + "\n")
-#             o.write(str(result_value) + "\n")
-#             o.write(str(correct_value) + "\n")
-
 
 import sys
 
